@@ -1,0 +1,114 @@
+import time
+import random
+import subprocess
+import os
+
+import requests
+import speech_recognition as sr
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+class Captchium:
+    """
+    A class for solving CAPTCHA challenges using audio recognition.
+    Args:
+        driver (webdriver.Chrome): The web driver instance.
+        recognize_service (str, optional): The audio recognition service to use. Defaults to "google". Can be either "google" or "vosk".
+    Raises:
+        FileNotFoundError: If the Vosk model is not found in the current folder.
+    Methods:
+        solve(iframe: WebElement) -> bool:
+            Solves the CAPTCHA challenge within the specified iframe.
+    """
+    def __init__(self, driver:webdriver.Chrome, recognize_service:str = "google"):
+        """
+        Initializes a new instance of the Captchium class.
+        Args:
+            driver (webdriver.Chrome): The web driver instance.
+            recognize_service (str, optional): The audio recognition service to use. Defaults to "google". Can be either "google" or "vosk".
+        """
+        self.driver = driver
+        self.recognizer = sr.Recognizer()
+        self.recognize_service = recognize_service
+        
+        if self.recognize_service == "google":
+            self.describe = self.recognizer.recognize_google
+            
+        elif self.recognize_service == "vosk":
+            if os.path.exists(os.path.join(os.getcwd(), "model")):
+                self.describe = self.recognizer.recognize_vosk
+                
+            else:
+                raise FileNotFoundError("Please download the model from https://alphacephei.com/vosk/models and unpack as 'model' in the current folder.")
+            
+    def solve(self, iframe: WebElement) -> bool:
+        """
+        Solves the CAPTCHA challenge within the specified iframe.
+        Args:
+            iframe (WebElement): The iframe element containing the CAPTCHA challenge. This iframe appears after clicking on the CAPTCHA. For more details, refer to the project page.
+        Returns:
+            bool: True if the CAPTCHA challenge is successfully solved, False otherwise.
+        Raises:
+            Exception: If too many requests are made from the IP address.
+        """
+        self.driver.switch_to.default_content()
+        self.driver.switch_to.frame(iframe)
+        status = False
+        for i in range(5):
+            
+            if i == 0:
+                audio_icon = self.driver.find_element(By.ID, "recaptcha-audio-button")
+                audio_icon.click()
+            else:
+                reload_icon = self.driver.find_element(By.ID, "recaptcha-reload-button")
+                reload_icon.click()
+            
+            WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.ID, "audio-source")))
+            
+            audio_src = self.driver.find_element(By.ID, "audio-source").get_attribute('src')
+            
+            response = requests.get(audio_src)
+
+            if os.path.isfile("temp.mp3"):
+                os.remove("temp.mp3")
+                
+            if os.path.isfile("temp.wav"):
+                os.remove("temp.wav")    
+            
+            with open("temp.mp3", "wb") as temp:
+                temp.write(response.content)
+            
+            subprocess.call(['ffmpeg', '-i', 'temp.mp3', 'temp.wav'], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            
+            with sr.AudioFile("temp.wav") as source:
+                audio_data = self.recognizer.record(source)
+                result = self.describe(audio_data)
+            
+            os.remove("temp.mp3")
+            os.remove("temp.wav")
+            
+            if self.recognize_service == "vosk":
+                result = eval(result)["text"]
+
+            captcha_input = self.driver.find_element(By.ID, "audio-response")
+            captcha_input.send_keys(result)
+            
+            time.sleep(random.randint(1, 4))
+            
+            submit_btn = self.driver.find_element(By.ID, "recaptcha-verify-button")
+            submit_btn.click()
+            time.sleep(1)
+            
+            if self.driver.find_elements(By.CLASS_NAME, "rc-doscaptcha-header") != []:
+                raise Exception("Too many requests from this IP address.")
+            
+            indicator = self.driver.find_element(By.CLASS_NAME, "rc-audiochallenge-error-message")
+            if indicator.get_attribute("innerText") == "" or not indicator.is_displayed():
+                status = True
+                break
+        
+        self.driver.switch_to.default_content()
+        return status
