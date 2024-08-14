@@ -40,9 +40,11 @@ captchium.solve(iframe)
 To use the `solve` function, you need to pass the iframe element that opens after clicking on the CAPTCHA. This can be done by locating the iframe element using Selenium's `find_element` method and passing it as an argument to the `solve` function.
 
 **Do not pass this iframe to the function**
+
 ![Not this iframe ](https://i.imgur.com/oSyw2qx.png)
 
 **Pass this iframe**
+
 ![This iframe](https://i.imgur.com/uF0AtlI.png)
 
 ## Supported Audio Recognition Services
