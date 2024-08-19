@@ -40,9 +40,11 @@ captchium.solve(iframe)
 To use the `solve` function, you need to pass the iframe element that opens after clicking on the CAPTCHA. This can be done by locating the iframe element using Selenium's `find_element` method and passing it as an argument to the `solve` function.
 
 **Do not pass this iframe to the function**
+
 ![Not this iframe ](https://i.imgur.com/oSyw2qx.png)
 
 **Pass this iframe**
+
 ![This iframe](https://i.imgur.com/uF0AtlI.png)
 
 ## Supported Audio Recognition Services
@@ -50,10 +52,10 @@ To use the `solve` function, you need to pass the iframe element that opens afte
 Captchium currently supports two audio recognition services: Google and Vosk. By default, it uses the Google service. You can specify the service when initializing Captchium:
 
 ```python
-captchium = Captchium(driver, recognize_service="vosk")
+captchium = Captchium(driver, recognize_service="vosk", vosk_model_path="path/to/vosk/model")
 ```
 
-Please note that if you choose the Vosk service, you need to download the Vosk model from [https://alphacephei.com/vosk/models](https://alphacephei.com/vosk/models) and unpack it as 'model' in the current folder.
+Please note that if you choose the Vosk service, you need to download the Vosk model from [https://alphacephei.com/vosk/models](https://alphacephei.com/vosk/models) and unpack it as 'model' in the current folder or specify the path to the model using the model_path parameter.
 
 ## Contributing
 
@@ -61,4 +63,4 @@ Contributions are welcome! If you find any issues or have suggestions for improv
 
 ## License
 
-Captchium is licensed under the MIT License. See the [LICENSE](https://github.com/d3kxrma/captchium/LICENSE) file for more information.
+Captchium is licensed under the MIT License. See the [LICENSE](https://github.com/d3kxrma/captchium/blob/main/LICENSE) file for more information.

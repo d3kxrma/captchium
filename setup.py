@@ -10,16 +10,19 @@ classifiers = [
  
 setup(
   name='captchium',
-  version='1.0.0',
+  version='1.1.0',
   description='Python library for solving Google reCAPTCHA challenges',
   long_description=open('README.md').read(),
   long_description_content_type='text/markdown',
-  url='https://github.com/d3kxrma/captchium',  
+  url='https://github.com/d3kxrma/captchium',
+  project_urls={
+      "Source": "https://github.com/d3kxrma/captchium"
+  },
   author='dekxrma',
   author_email='qqdjnuxez@gmail.com',
   license='MIT', 
   classifiers=classifiers,
-  keywords='python, recapthca, captcha, solver, selenium',
+  keywords='python, recaptcha, captcha, solver, selenium',
   packages=find_packages(),
   install_requires=['requests', 'SpeechRecognition', 'selenium'] 
 )

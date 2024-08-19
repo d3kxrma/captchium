@@ -17,18 +17,21 @@ class Captchium:
     Args:
         driver (webdriver.Chrome): The web driver instance.
         recognize_service (str, optional): The audio recognition service to use. Defaults to "google". Can be either "google" or "vosk".
+        model_path (str, optional): The path to the Vosk model. Defaults to None.
     Raises:
         FileNotFoundError: If the Vosk model is not found in the current folder.
+        ImportError: If the Vosk library is not installed.
     Methods:
         solve(iframe: WebElement) -> bool:
             Solves the CAPTCHA challenge within the specified iframe.
     """
-    def __init__(self, driver:webdriver.Chrome, recognize_service:str = "google"):
+    def __init__(self, driver:webdriver.Chrome, recognize_service:str = "google", model_path:str = None):
         """
         Initializes a new instance of the Captchium class.
         Args:
             driver (webdriver.Chrome): The web driver instance.
             recognize_service (str, optional): The audio recognition service to use. Defaults to "google". Can be either "google" or "vosk".
+            model_path (str, optional): The path to the Vosk model. Defaults to None.
         """
         self.driver = driver
         self.recognizer = sr.Recognizer()
@@ -38,11 +41,16 @@ class Captchium:
             self.describe = self.recognizer.recognize_google
             
         elif self.recognize_service == "vosk":
-            if os.path.exists(os.path.join(os.getcwd(), "model")):
-                self.describe = self.recognizer.recognize_vosk
-                
+            try:
+                from vosk import Model
+            except ImportError:
+                raise ImportError("Please install the Vosk library using 'pip install vosk'.")
+            if model_path:
+                self.recognizer.vosk_model = Model(model_path)
             else:
-                raise FileNotFoundError("Please download the model from https://alphacephei.com/vosk/models and unpack as 'model' in the current folder.")
+                if not os.path.exists(os.path.join(os.getcwd(), "model")):
+                    raise FileNotFoundError("Please download the model from https://alphacephei.com/vosk/models and extract it as 'model' to the current folder or specify the path to the model using the model_path parameter.")
+            self.describe = self.recognizer.recognize_vosk
             
     def solve(self, iframe: WebElement) -> bool:
         """
