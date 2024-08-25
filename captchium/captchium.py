@@ -5,12 +5,13 @@ import os
 
 import requests
 import speech_recognition as sr
+from speech_recognition.exceptions import UnknownValueError
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+from selenium.common.exceptions import TimeoutException
 class Captchium:
     """
     A class for solving CAPTCHA challenges using audio recognition.
@@ -52,11 +53,12 @@ class Captchium:
                     raise FileNotFoundError("Please download the model from https://alphacephei.com/vosk/models and extract it as 'model' to the current folder or specify the path to the model using the model_path parameter.")
             self.describe = self.recognizer.recognize_vosk
             
-    def solve(self, iframe: WebElement) -> bool:
+    def solve(self, iframe: WebElement, retries:int=5) -> bool:
         """
         Solves the CAPTCHA challenge within the specified iframe.
         Args:
             iframe (WebElement): The iframe element containing the CAPTCHA challenge. This iframe appears after clicking on the CAPTCHA. For more details, refer to the project page.
+            retries (int, optional): The number of retries to attempt. Defaults to 5.
         Returns:
             bool: True if the CAPTCHA challenge is successfully solved, False otherwise.
         Raises:
@@ -65,17 +67,18 @@ class Captchium:
         self.driver.switch_to.default_content()
         self.driver.switch_to.frame(iframe)
         status = False
-        for i in range(5):
-            
+        for i in range(retries):
             if i == 0:
                 audio_icon = self.driver.find_element(By.ID, "recaptcha-audio-button")
                 audio_icon.click()
             else:
                 reload_icon = self.driver.find_element(By.ID, "recaptcha-reload-button")
                 reload_icon.click()
-            
-            WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.ID, "audio-source")))
-            
+            try:
+                WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.ID, "audio-source")))
+            except TimeoutException:
+                raise Exception("The CAPTCHA challenge could not be loaded. Too many requests from this IP address.")
+                
             audio_src = self.driver.find_element(By.ID, "audio-source").get_attribute('src')
             
             response = requests.get(audio_src)
@@ -93,7 +96,10 @@ class Captchium:
             
             with sr.AudioFile("temp.wav") as source:
                 audio_data = self.recognizer.record(source)
-                result = self.describe(audio_data)
+                try:
+                    result = self.describe(audio_data)
+                except UnknownValueError:
+                    continue
             
             os.remove("temp.mp3")
             os.remove("temp.wav")
@@ -103,19 +109,29 @@ class Captchium:
 
             captcha_input = self.driver.find_element(By.ID, "audio-response")
             captcha_input.send_keys(result)
-            
             time.sleep(random.randint(1, 4))
             
             submit_btn = self.driver.find_element(By.ID, "recaptcha-verify-button")
             submit_btn.click()
             time.sleep(1)
-            
             if self.driver.find_elements(By.CLASS_NAME, "rc-doscaptcha-header") != []:
                 raise Exception("Too many requests from this IP address.")
             
-            if submit_btn.is_displayed():
+            time.sleep(2)
+            indicator = self.driver.find_elements(By.ID, "recaptcha-verify-button")
+            
+            if not indicator:
                 status = True
                 break
+            
+            if not indicator[0].is_displayed():
+                status = True
+                break
+            
+            if not indicator[0].is_enabled():
+                status = True
+                break
+
             time.sleep(2)
         
         self.driver.switch_to.default_content()
