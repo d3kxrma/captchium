@@ -113,10 +113,10 @@ class Captchium:
             if self.driver.find_elements(By.CLASS_NAME, "rc-doscaptcha-header") != []:
                 raise Exception("Too many requests from this IP address.")
             
-            indicator = self.driver.find_element(By.CLASS_NAME, "rc-audiochallenge-error-message")
-            if indicator.get_attribute("innerText") == "" or not indicator.is_displayed():
+            if submit_btn.is_displayed():
                 status = True
                 break
+            time.sleep(2)
         
         self.driver.switch_to.default_content()
         return status

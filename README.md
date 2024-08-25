@@ -52,7 +52,7 @@ To use the `solve` function, you need to pass the iframe element that opens afte
 Captchium currently supports two audio recognition services: Google and Vosk. By default, it uses the Google service. You can specify the service when initializing Captchium:
 
 ```python
-captchium = Captchium(driver, recognize_service="vosk", vosk_model_path="path/to/vosk/model")
+captchium = Captchium(driver, recognize_service="vosk", model_path="path/to/model")
 ```
 
 Please note that if you choose the Vosk service, you need to download the Vosk model from [https://alphacephei.com/vosk/models](https://alphacephei.com/vosk/models) and unpack it as 'model' in the current folder or specify the path to the model using the model_path parameter.
