@@ -53,18 +53,20 @@ class Captchium:
                     raise FileNotFoundError("Please download the model from https://alphacephei.com/vosk/models and extract it as 'model' to the current folder or specify the path to the model using the model_path parameter.")
             self.describe = self.recognizer.recognize_vosk
             
-    def solve(self, iframe: WebElement, retries:int=5) -> bool:
+    def solve(self, iframe: WebElement, retries:int=5, switch_to_default:bool=True) -> bool:
         """
         Solves the CAPTCHA challenge within the specified iframe.
         Args:
             iframe (WebElement): The iframe element containing the CAPTCHA challenge. This iframe appears after clicking on the CAPTCHA. For more details, refer to the project page.
             retries (int, optional): The number of retries to attempt. Defaults to 5.
+            switch_to_default (bool, optional): Whether to switch back to the default content after solving the CAPTCHA. Defaults to True.
         Returns:
             bool: True if the CAPTCHA challenge is successfully solved, False otherwise.
         Raises:
             Exception: If too many requests are made from the IP address.
         """
-        self.driver.switch_to.default_content()
+        if switch_to_default:
+            self.driver.switch_to.default_content()
         self.driver.switch_to.frame(iframe)
         status = False
         for i in range(retries):
@@ -134,5 +136,6 @@ class Captchium:
 
             time.sleep(2)
         
-        self.driver.switch_to.default_content()
+        if switch_to_default:
+            self.driver.switch_to.default_content()
         return status

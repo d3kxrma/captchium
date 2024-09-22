@@ -10,7 +10,7 @@ classifiers = [
  
 setup(
   name='captchium',
-  version='1.1.2',
+  version='1.1.3',
   description='Python library for solving Google reCAPTCHA challenges',
   long_description=open('README.md').read(),
   long_description_content_type='text/markdown',
