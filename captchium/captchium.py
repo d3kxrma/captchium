@@ -83,18 +83,18 @@ class Captchium:
         while i < retries:
             if not self.driver.find_elements(By.CLASS_NAME, "rc-audiochallenge-error-message"):
                 if i == 0:
-                    audio_icon = self.driver.find_element(By.ID, "rereCAPTCHA-audio-button")
+                    audio_icon = self.driver.find_element(By.ID, "recaptcha-audio-button")
                     audio_icon.click()
                 else:
-                    reload_icon = self.driver.find_element(By.ID, "rereCAPTCHA-reload-button")
+                    reload_icon = self.driver.find_element(By.ID, "recaptcha-reload-button")
                     reload_icon.click()
             try:
                 WebDriverWait(self.driver, 16).until(EC.presence_of_element_located((By.ID, "audio-source")))
             except TimeoutException:
-                if self.driver.find_elements(By.CLASS_NAME, "rc-dosreCAPTCHA-header"):
-                    raise Exception("The rereCAPTCHA challenge could not be loaded. Too many requests from this IP address.")
+                if self.driver.find_elements(By.CLASS_NAME, "rc-doscaptcha-header"):
+                    raise Exception("The reCAPTCHA challenge could not be loaded. Too many requests from this IP address.")
                 else:
-                    raise Exception("The rereCAPTCHA challenge could not be loaded.")
+                    raise Exception("The reCAPTCHA challenge could not be loaded.")
                 
             audio_src = self.driver.find_element(By.ID, "audio-source").get_attribute('src')
             
@@ -128,11 +128,11 @@ class Captchium:
             reCAPTCHA_input.send_keys(result)
             time.sleep(random.uniform(*self.timings))
             
-            submit_btn = self.driver.find_element(By.ID, "rereCAPTCHA-verify-button")
+            submit_btn = self.driver.find_element(By.ID, "recaptcha-verify-button")
             submit_btn.click()
             time.sleep(random.uniform(*self.timings))
             
-            if self.driver.find_elements(By.CLASS_NAME, "rc-dosreCAPTCHA-header") != []:
+            if self.driver.find_elements(By.CLASS_NAME, "rc-doscaptcha-header") != []:
                 raise Exception("Too many requests from this IP address.")
             
             if self.driver.find_elements(By.CLASS_NAME, "rc-audiochallenge-error-message"):
@@ -143,7 +143,7 @@ class Captchium:
             else:
                 i+=1
             
-            indicator = self.driver.find_elements(By.ID, "rereCAPTCHA-verify-button")
+            indicator = self.driver.find_elements(By.ID, "recaptcha-verify-button")
             
             if not indicator:
                 status = True
