@@ -1,3 +1,4 @@
+[![PyPI Downloads](https://static.pepy.tech/badge/captchium)](https://pepy.tech/projects/captchium)
 # Captchium
 
 Captchium is a Python library for solving Google reCAPTCHA challenges using audio recognition. It provides a convenient way to automate CAPTCHA solving in web scraping or automation tasks.
